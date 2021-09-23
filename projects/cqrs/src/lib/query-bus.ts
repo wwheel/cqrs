@@ -37,7 +37,7 @@ export class QueryBus extends ObservableBus<IQuery> implements IQueryBus
             payload.result = result instanceof Promise ? (await result) : result;
             return Promise.resolve(payload.result);
         }
-        return this.loader.execute(query);
+        return result;
     }
 
     ofType<TInput extends IQuery, TOutput extends IQuery>(
