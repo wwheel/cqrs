@@ -97,6 +97,44 @@ constructor(private readonly actionBus: ActionBus)
 }
 ```
 
+## Queries
+
+The `QueryBus` follows the same pattern as the `ActionsBus`. Let's create for example a `GetMoviesQuery` query:
+
+Query:
+```typescript
+export class GetMoviesQuery {
+    static readonly type = 'GetMoviesQuery';
+    
+    constructor(
+      public readonly isSearch: boolean,
+      public readonly searchValue: string
+    ) {}
+}
+```
+Query Handler:
+```typescript
+@NgModule()
+export class GetMoviesHandler implements IQueryHandler<GetMoviesQuery>
+{
+    private readonly API_URL = 'https://api.themoviedb.org/3/discover/movie?sort_by=popularity.desc&api_key=3fd2be6f0c70a2a598f084ddfb75487c&page=1';
+    private readonly SEARCH_API = 'https://api.themoviedb.org/3/search/movie?api_key=3fd2be6f0c70a2a598f084ddfb75487c&query="';
+
+    async execute(query: GetMoviesQuery): Promise<Element>
+    {
+        const response = await fetch(query.isSearch ? this.SEARCH_API + query.searchValue : this.API_URL);
+        return response.json();
+    }
+}
+```
+Request example:
+```typescript
+async getMovies()
+{
+    const value = await this.queryBus.execute(new GetMoviesQuery(true, 'sonic'))
+}
+```
+
 ## Sagas
 
 Sagas are an extremely powerful feature. A single saga may listen for 1..* actions. Using the RxJS library, it can combine, merge, filter or apply other RxJS operators on the event stream. Each saga returns an Observable which contains a action. This action is dispatched asynchronously.
@@ -105,30 +143,13 @@ Sagas are an extremely powerful feature. A single saga may listen for 1..* actio
 @Injectable()
 export class HeroesGameSagas {
   @Saga()
-  dragonKilled = (events$: Observable<any>): Observable<INgEvent> => {
+  dragonKilled = (events$: Observable<any>): Observable<IAction> => {
     return events$.pipe(
-      ofType(HeroKilledDragonEvent),
-      map((event) => new DropAncientItemAction(event.heroId, fakeItemID)),
+      ofType(KillDragonAction),
+      map((event) => new DropAncientItemAction(event.heroId)),
     );
   }
 }
 ```
 
-## Queries
-
-The `QueryBus` follows the same pattern as the `ActionsBus`. Example Query Handler:
-```typescript
-@NgModule()
-export class GetEmptyBlockHandler implements IQueryHandler<GetEmptyBlockQuery>
-{
-    async execute(query: GetEmptyBlockQuery): Promise<Element>
-    {
-        const block = document.querySelector('#empty_block');
- 
-        // logic
-
-        return block;
-    }
-}
-```
 A working example is available in `src/app`.

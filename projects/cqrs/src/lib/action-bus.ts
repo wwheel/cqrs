@@ -52,6 +52,11 @@ export class ActionBus extends ObservableBus<IAction> implements IActionBus
         return this.subject$.pipe(ofType(...types), share());
     }
 
+    destroy(): void
+    {
+        this.subject$.complete();
+    }
+
     private registerSagas(instances: Type<any>[] = []): void
     {
         const sagas = instances
